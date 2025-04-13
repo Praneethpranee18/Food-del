@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react'
 import './PlaceOrder.css'
 import { StoreContext } from '../../context/StoreContext'
+import axios from 'axios'
 const PlaceOrder = () => {
   const {getTotalCartAmount,token,food_list,cartItems,url} = useContext(StoreContext)
 
@@ -26,7 +27,7 @@ const PlaceOrder = () => {
     event.preventDefault();
     let orderItems = [];
     food_list.map((item)=>{
-      if(cartItems[item.id]>0){
+      if(cartItems[item._id]>0){
         let itemInfo = item;
         itemInfo["quantity"] = cartItems[item._id];
         orderItems.push(itemInfo)
