@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/Praneethpranee18/Food-del'
+            }
+        }
+
+        stage('Build and Deploy with Docker Compose') {
+            steps {
+                script {
+                    sh 'docker-compose down' // stop old containers
+                    sh 'docker-compose up --build -d' // build and start new ones
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+        }
+        success {
+            echo '✅ Deployment Successful!'
+        }
+        failure {
+            echo '❌ Something went wrong!'
+        }
+    }
+}
