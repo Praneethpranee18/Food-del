@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/Praneethpranee18/Food-del'
+                git url: 'https://github.com/Praneethpranee18/Food-del.git', branch: 'main', credentialsId: '01bbdc62-f7ce-4490-9ccf-fe228fb420fe'
+
             }
         }
 
