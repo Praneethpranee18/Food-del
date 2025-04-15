@@ -1,0 +1,43 @@
+# docker-compose.prod.yml - Production configuration for Food-del
+version: "3.8"
+
+services:
+  frontend:
+    image: yourusername/food-del-frontend:prod
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    ports:
+      - "80:3000"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://backend:5000
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    image: yourusername/food-del-backend:prod
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=
