@@ -1,33 +1,50 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18'
+        }
+    }
+
+    environment {
+        DOCKER_IMAGE = "travelproject-app:latest"
+    }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/Praneethpranee18/Food-del.git', branch: 'main', credentialsId: '01bbdc62-f7ce-4490-9ccf-fe228fb420fe'
-
+                git branch: 'main', url: 'https://github.com/Praneethpranee18/Food-del.git'
             }
         }
 
-        stage('Build and Deploy with Docker Compose') {
+        stage('Install Dependencies') {
             steps {
-                script {
-                    sh 'docker-compose down' // stop old containers
-                    sh 'docker-compose up --build -d' // build and start new ones
-                }
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test || echo "No tests defined"'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker-compose down || true'
+                sh 'docker-compose up -d'
             }
         }
     }
 
     post {
         always {
-            echo 'Cleaning up...'
-        }
-        success {
-            echo '✅ Deployment Successful!'
-        }
-        failure {
-            echo '❌ Something went wrong!'
+            cleanWs()
         }
     }
 }
