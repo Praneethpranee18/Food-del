@@ -11,6 +11,11 @@ pipeline {
         BACKEND_IMAGE = "praneethpranee18/food-delivery-backend"
     }
     stages {
+        stage('Disable SSL Verify') {
+            steps {
+                sh 'git config --global http.sslVerify false'
+            }
+        }
         stage('Checkout Code') {
             steps {
                 git url: 'https://github.com/Praneethpranee18/Food-del.git', branch: 'main', credentialsId: '01bbdc62-f7ce-4490-9ccf-fe228fb420fe'
