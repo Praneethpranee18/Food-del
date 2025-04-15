@@ -1,39 +1,67 @@
 pipeline {
     agent {
         docker {
-            image 'node:18'
+            image 'docker:20.10'
+            args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
         }
     }
-
     environment {
-        DOCKER_IMAGE = "travelproject-app:latest"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        FRONTEND_IMAGE = "praneethpranee18/food-delivery-frontend"
+        BACKEND_IMAGE = "praneethpranee18/food-delivery-backend"
     }
-
     stages {
         stage('Checkout Code') {
             steps {
                 git url: 'https://github.com/Praneethpranee18/Food-del.git', branch: 'main', credentialsId: '01bbdc62-f7ce-4490-9ccf-fe228fb420fe'
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Install Frontend Dependencies') {
             steps {
-                sh 'npm install'
+                dir('frontend') {
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:18 npm install'
+                }
             }
         }
-
-        stage('Run Tests') {
+        stage('Run Frontend Tests') {
             steps {
-                sh 'npm test || echo "No tests defined"'
+                dir('frontend') {
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:18 npm test || echo "No frontend tests defined"'
+                }
             }
         }
-
-        stage('Build Docker Image') {
+        stage('Install Backend Dependencies') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                dir('backend') {
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:18 npm install'
+                }
             }
         }
-
+        stage('Run Backend Tests') {
+            steps {
+                dir('backend') {
+                    sh 'docker run --rm -v $(pwd):/app -w /app node:18 npm test || echo "No backend tests defined"'
+                }
+            }
+        }
+        stage('Build Docker Images') {
+            steps {
+                sh 'docker-compose build'
+            }
+        }
+        stage('Push Docker Images') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh "docker tag food-del_frontend ${FRONTEND_IMAGE}:${env.BUILD_ID}"
+                sh "docker tag food-del_backend ${BACKEND_IMAGE}:${env.BUILD_ID}"
+                sh "docker push ${FRONTEND_IMAGE}:${env.BUILD_ID}"
+                sh "docker push ${BACKEND_IMAGE}:${env.BUILD_ID}"
+                sh "docker tag food-del_frontend ${FRONTEND_IMAGE}:latest"
+                sh "docker tag food-del_backend ${BACKEND_IMAGE}:latest"
+                sh "docker push ${FRONTEND_IMAGE}:latest"
+                sh "docker push ${BACKEND_IMAGE}:latest"
+            }
+        }
         stage('Deploy') {
             steps {
                 sh 'docker-compose down || true'
@@ -41,10 +69,12 @@ pipeline {
             }
         }
     }
-
     post {
         always {
-            cleanWs()
+            node {
+                cleanWs()
+                sh 'docker logout'
+            }
         }
     }
 }
