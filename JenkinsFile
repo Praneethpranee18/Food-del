@@ -3,11 +3,12 @@ pipeline {
     stages {
         stage('Clean Workspace') {
             steps {
-                cleanWs() // Prevents "not in a git directory" error
+                cleanWs() // Clears the workspace to avoid stale data
             }
         }
         stage('Checkout') {
             steps {
+                // Clone the repository
                 checkout([$class: 'GitSCM',
                           branches: [[name: '*/main']],
                           userRemoteConfigs: [[url: 'https://github.com/Praneethpranee18/Food-del.git']]])
