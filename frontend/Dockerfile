@@ -17,6 +17,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Install serve to serve the build
+#It is used to serve the built frontend files (from dist/ or build/ folder) as a website.
 RUN npm install -g serve
 
 # Expose frontend port
