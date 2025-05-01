@@ -11,13 +11,13 @@ pipeline {
         stage('Docker Compose Down') {
             steps {
                 // Fixed the $ usage using single quotes
-                sh 'docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 down || true'
+                bat 'docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 down || true'
             }
         }
 
         stage('Docker Compose Up') {
             steps {
-                sh 'docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 up -d'
+                bat 'docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 up -d'
             }
         }
     }
