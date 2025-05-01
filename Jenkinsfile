@@ -1,39 +1,24 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('*/2 * * * *')
-    }
-
     stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
-
         stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/Praneethpranee18/Food-del.git'
             }
         }
 
-        stage('Stop & Remove Old Containers') {
+        stage('Docker Compose Down') {
             steps {
-                sh "docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 down || true"
+                // Fixed the $ usage using single quotes
+                sh 'docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 down || true'
             }
         }
 
-        stage('Build and Run with Docker Compose') {
+        stage('Docker Compose Up') {
             steps {
-                sh "docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 up --build -d"
+                sh 'docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 up -d'
             }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
         }
     }
 }
