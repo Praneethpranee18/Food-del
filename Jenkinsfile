@@ -5,11 +5,6 @@ pipeline {
         pollSCM('*/2 * * * *') // Check for changes every 2 minutes
     }
 
-    environment {
-        IMAGE_NAME = 'praneeth/food-del'
-        IMAGE_TAG = 'latest'
-    }
-
     stages {
         stage('Clean Workspace') {
             steps {
@@ -23,22 +18,15 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Stop & Remove Old Containers') {
             steps {
-                sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
+                sh "docker-compose down || true"
             }
         }
 
-        stage('Stop & Remove Old Container') {
+        stage('Build and Run with Docker Compose') {
             steps {
-                sh "docker stop food-del-container || true"
-                sh "docker rm food-del-container || true"
-            }
-        }
-
-        stage('Run New Container') {
-            steps {
-                sh "docker run -d --name food-del-container -p 3000:3000 $IMAGE_NAME:$IMAGE_TAG"
+                sh "docker-compose up --build -d"
             }
         }
     }
