@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        pollSCM('*/2 * * * *') // Check for changes every 2 minutes
+        pollSCM('*/2 * * * *')
     }
 
     stages {
@@ -20,13 +20,13 @@ pipeline {
 
         stage('Stop & Remove Old Containers') {
             steps {
-                sh "docker-compose down || true"
+                sh "docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 down || true"
             }
         }
 
         stage('Build and Run with Docker Compose') {
             steps {
-                sh "docker-compose up --build -d"
+                sh "docker run --rm -v $(pwd):/app -v /var/run/docker.sock:/var/run/docker.sock -w /app docker/compose:1.29.2 up --build -d"
             }
         }
     }
